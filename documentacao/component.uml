@@ -1,0 +1,33 @@
+@startuml
+
+package "Frontend (Cliente)" {
+  [Interface de Agendamento] 
+  [Interface de Consulta de Espaços]
+  [Interface de Autenticação]
+}
+
+package "Servidor (Backend)" {
+  [API REST]
+  [Controle de Agendamento]
+  [Validação de Disponibilidade]
+  [Controle de Feriados e Horários]
+  [Autenticação e Autorização]
+  [Integração SSO UFU]
+}
+
+package "Banco de Dados" {
+  [Tabela de Usuários]
+  [Tabela de Agendamentos]
+  [Tabela de Espaços]
+  [Tabela de Horários]
+  [Tabela de Feriados]
+}
+
+[Frontend (Cliente)] --> [API REST] : Consome API
+[API REST] --> [Controle de Agendamento] : Comunicação
+[Controle de Agendamento] --> [Banco de Dados] : Acessa Dados
+[Autenticação e Autorização] --> [Integração SSO UFU] : Redireciona Usuário
+[Integração SSO UFU] --> [API REST] : Retorno de JWT
+[API REST] --> [Banco de Dados] : Acesso aos Dados do Usuário
+
+@enduml

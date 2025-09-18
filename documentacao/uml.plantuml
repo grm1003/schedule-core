@@ -1,0 +1,45 @@
+@startuml
+!theme cerulean
+
+entity "usuarios" as UserEntity {
+  * email (PK)
+  --
+  nome
+  matricula (UNIQUE)
+  telefone
+  role
+  curso
+  campus
+}
+
+entity "ginasios" as GinasioEntity {
+  * id (PK)
+  --
+  nome
+  campus
+  startTime
+  endTime
+}
+
+entity "reservas" as ReservaEntity {
+  * id (PK)
+  --
+  data
+  horario
+  quantidadePessoas
+  usuarioMatricula (FK)
+  ginasioId (FK)
+}
+
+entity "restricoes" as RestricaoEntity {
+  * id (PK)
+  --
+  ginasioId (FK)
+  data
+  descricao
+}
+
+UserEntity ||--o{ ReservaEntity : "1:N"
+GinasioEntity ||--o{ ReservaEntity : "1:N"
+GinasioEntity ||--o{ RestricaoEntity : "1:N"
+@enduml

@@ -1,0 +1,63 @@
+@startuml
+title Arquitetura  – Schedule-UFU (Angular) → Schedule-Core (Spring Boot) → PostgreSQL (Docker)
+
+skinparam componentStyle rectangle
+skinparam Shadowing false
+skinparam ArrowColor #445
+skinparam defaultFontName Inter
+
+actor "Usuário" as usuario
+
+node "Cliente Web\n(Angular SPA)" as web {
+  component "SPA\n• Autenticação por código (e-mail)\n• Agendar/Cancelar/Listar\n• Telas de admin básicas" as spa
+}
+
+node "Schedule-Core\n(Spring Boot)" as core {
+  component "AuthController\n/v1/auth\n• POST / (gera token)\n• POST /validate (valida token)\n• POST /email/send/{email}\n• POST /email/validate" as auth
+  component "ScheduleController\n/v1/schedule\n• criar/listar/usuario/deletar" as sched
+  component "AdmController\n/v1/adm\n• gestão de usuários/admin" as adm
+  component "JWT Filter + SecurityConfig\n(Bearer Token)" as sec
+  component "DatabaseAdapter\n(Ports→Adapters)" as dbadp
+  package "JPA Repositories + Entities" as jpa {
+    component "UserEntity / UserRepository"
+    component "GinasioEntity / GinasioRepository"
+    component "ReservaEntity / ReservaRepository"
+    component "RestricaoEntity / RestricaoRepository"
+  }
+  component "EmailSenderAdapter\n(envio de código por e-mail)" as email
+}
+
+database "PostgreSQL 16\n(Docker compose)" as pg
+
+' Fluxos
+usuario --> spa : usa app
+spa --> auth : autenticação (e-mail/token)
+auth --> email : enviar código
+spa --> sched : operações de agenda (criar/listar/deletar)
+spa --> adm : ações administrativas (quando aplicável)
+
+' Persistência
+core --> sec : filtro JWT nas rotas
+sched --> dbadp
+adm --> dbadp
+auth --> dbadp : (consulta/grava usuário)
+dbadp --> jpa
+jpa --> pg : JDBC (JPA/Hibernate)
+
+note bottom of core
+  Implementado no Core:
+  • AuthController (emitir/validar token, enviar/validar código)
+  • ScheduleController (CRUD básico de reservas)
+  • AdmController (rotas de administração)
+  • Filtro JWT + SecurityConfig
+  • DatabaseAdapter + Repositórios/Entidades
+end note
+
+note right of pg
+  Provisionado via docker-compose:
+  imagem: postgres:16.1-alpine
+  porta: 5555→5432
+  DB: SCHEDULEDB
+end note
+
+@enduml
